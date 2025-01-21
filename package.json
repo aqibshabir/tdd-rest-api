@@ -17,8 +17,8 @@
   "description": "Using Test Driven Development to create a REST API",
   "main": "server.js",
   "scripts": {
-    "test": "jest --watchAll",
-    "start": "node server.js"
+    "dev": "NODE_ENV=development node src/server.js",
+    "test": "NODE_ENV=test jest --watchAll"
   },
   "type": "module",
   "keywords": [],

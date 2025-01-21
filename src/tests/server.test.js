@@ -1,5 +1,5 @@
-import { app } from '../app';
-import { PORT } from '../server';
+import { app } from '../app.js';
+import { PORT } from '../server.js';
 import request from 'supertest';
 
 describe('intialising server', () => {
@@ -18,7 +18,7 @@ describe('intialising server', () => {
   });
 
   it('should start the server on port 9000', () => {
-    expect(server.address().port).toBe(9000);
+    expect(server.address().port).toBe(Number(PORT));
   });
 });
 
