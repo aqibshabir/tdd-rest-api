@@ -36,4 +36,13 @@ describe('Middleware', () => {
       .set('Content-Type', 'application/json');
     expect(response.body).toEqual(payload);
   });
+
+  it('should return 400 for invalid JSON', async () => {
+    const response = await request(app)
+      .post('/')
+      .send('not valid json')
+      .set('Content-Type', 'application/json');
+    expect(response.status).toBe(400);
+    expect(response.text).toContain('Invalid JSON');
+  });
 });
