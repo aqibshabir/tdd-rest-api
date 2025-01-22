@@ -45,4 +45,15 @@ describe('Middleware', () => {
     expect(response.status).toBe(400);
     expect(response.text).toContain('Invalid JSON');
   });
+
+  describe('GET / route', () => {
+    it('should return JSON with the expected info message', async () => {
+      const expectedPayload = {
+        info: 'Created using Node.js, Express, Postgres API, Jest and Supertest',
+      };
+      const response = await request(app).get('/').set('Content-Type', 'application/json');
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(expectedPayload);
+    });
+  });
 });
