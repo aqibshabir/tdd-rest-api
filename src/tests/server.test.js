@@ -1,5 +1,5 @@
 import { app } from '../app.js';
-import { PORT } from '../server.js';
+import { PORT, pool } from '../server.js';
 import request from 'supertest';
 
 let server;
@@ -10,15 +10,26 @@ beforeAll((done) => {
   });
 });
 
-afterAll((done) => {
-  server.close(() => {
-    done();
-  });
+afterAll(async () => {
+  await server.close();
+  await pool.end();
 });
 
 describe('intialising server', () => {
   it('should start the server on port 9000', () => {
     expect(server.address().port).toBe(Number(PORT));
+  });
+});
+
+describe('initialising database', () => {
+  it('should connect to the database successfully', async () => {
+    const client = await pool.connect();
+    try {
+      const isConnected = await client.query('SELECT 1;');
+      expect(isConnected.rowCount).toBe(1);
+    } finally {
+      client.release();
+    }
   });
 });
 
