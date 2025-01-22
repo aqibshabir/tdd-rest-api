@@ -49,7 +49,7 @@ describe('Middleware', () => {
   describe('GET / route', () => {
     it('should return JSON with the expected info message', async () => {
       const expectedPayload = {
-        info: 'Created using Node.js, Express, Postgres API, Jest and Supertest',
+        info: 'Created using Node.js, Express, PostgreSQL, Jest and Supertest',
       };
       const response = await request(app).get('/').set('Content-Type', 'application/json');
       expect(response.status).toBe(200);

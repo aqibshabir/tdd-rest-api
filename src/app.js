@@ -17,7 +17,7 @@ app.use((err, req, res, next) => {
 // routes
 
 app.get('/', (req, res) => {
-  res.json({ info: 'Created using Node.js, Express, Postgres API, Jest and Supertest' });
+  res.json({ info: 'Created using Node.js, Express, PostgreSQL, Jest and Supertest' });
 });
 
 app.post('/', (req, res) => {
