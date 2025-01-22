@@ -46,14 +46,26 @@ describe('Middleware', () => {
     expect(response.text).toContain('Invalid JSON');
   });
 
-  describe('GET / route', () => {
-    it('should return JSON with the expected info message', async () => {
-      const expectedPayload = {
-        info: 'Created using Node.js, Express, PostgreSQL, Jest and Supertest',
-      };
-      const response = await request(app).get('/').set('Content-Type', 'application/json');
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual(expectedPayload);
-    });
+  it('should return 404 when incorrect route', async () => {
+    const response = await request(app).get('/nonexistent');
+    expect(response.status).toBe(404);
+    expect(response.text).toContain('Not Found');
+  });
+
+  it('should return 500 for errors', async () => {
+    const response = await request(app).get('/error');
+    expect(response.status).toBe(500);
+    expect(response.text).toContain('Internal Server Error');
+  });
+});
+
+describe('GET / route', () => {
+  it('should return JSON with the expected info message', async () => {
+    const expectedPayload = {
+      info: 'Created using Node.js, Express, PostgreSQL, Jest and Supertest',
+    };
+    const response = await request(app).get('/').set('Content-Type', 'application/json');
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(expectedPayload);
   });
 });

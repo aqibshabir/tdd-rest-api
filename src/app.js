@@ -15,11 +15,24 @@ app.use((err, req, res, next) => {
 });
 
 // routes
-
 app.get('/', (req, res) => {
   res.json({ info: 'Created using Node.js, Express, PostgreSQL, Jest and Supertest' });
 });
 
 app.post('/', (req, res) => {
   res.json(req.body);
+});
+
+// test route for 500 status errors
+app.get('/error', (req, res) => {
+  throw new Error('this is an error');
+});
+
+// 404 not found
+app.use((req, res) => {
+  res.status(404).send('Not Found');
+});
+// 500 errors
+app.use((err, req, res, next) => {
+  res.status(500).send('Internal Server Error');
 });
