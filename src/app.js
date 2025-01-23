@@ -38,6 +38,16 @@ app.get('/users', async (req, res, next) => {
   }
 });
 
+app.get('/users/:id', async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+    res.status(200).json(result.rows);
+  } catch (error) {
+    next(error);
+  }
+});
+
 // 404 not found
 app.use((req, res) => {
   res.status(404).send('Not Found');

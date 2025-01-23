@@ -128,4 +128,20 @@ describe('Database tests', () => {
       pool.query = query;
     });
   });
+
+  describe('GET /users/:id route (get specific user)', () => {
+    it('should only return one user from the database', async () => {
+      const response = await request(app).get('/users/1');
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveLength(1);
+    });
+
+    it('should handle 500 errors when database errors occurs', async () => {
+      const query = pool.query;
+      pool.query = jest.fn().mockRejectedValue(new Error('simulating an error'));
+      const response = await request(app).get('/users/1');
+      expect(response.status).toBe(500);
+      pool.query = query;
+    });
+  });
 });
