@@ -115,6 +115,11 @@ describe('Database tests', () => {
       expect(response.body).toHaveLength(0);
     });
 
+    it('should return JSON content type', async () => {
+      const response = await request(app).get('/users');
+      expect(response.headers['content-type']).toMatch(/application\/json/);
+    });
+
     it('should handle 500 errors when database error occurs', async () => {
       const query = pool.query;
       pool.query = jest.fn().mockRejectedValue(new Error('simulating an error'));
