@@ -80,3 +80,47 @@ describe('GET / route', () => {
     expect(response.body).toEqual(expectedPayload);
   });
 });
+
+describe('Database tests', () => {
+  beforeEach(async () => {
+    await pool.query('TRUNCATE TABLE users RESTART IDENTITY CASCADE;');
+    await pool.query(
+      "INSERT INTO users (name, email) VALUES ('Aqib Shabir', 'aqib@email.com'), ('Georgie Roberts', 'georgie@email.com');"
+    );
+  });
+
+  afterEach(async () => {
+    await pool.query('TRUNCATE TABLE users RESTART IDENTITY CASCADE;');
+  });
+
+  describe('GET /users route (getting all users)', () => {
+    it('should fetch all users from database', async () => {
+      const response = await request(app).get('/users');
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveLength(2);
+    });
+
+    it('should return the correct data in asc order from the database', async () => {
+      const response = await request(app).get('/users');
+      expect(response.body).toEqual([
+        { id: 1, name: 'Aqib Shabir', email: 'aqib@email.com' },
+        { id: 2, name: 'Georgie Roberts', email: 'georgie@email.com' },
+      ]);
+    });
+
+    it('should handle empty database', async () => {
+      await pool.query('TRUNCATE TABLE users RESTART IDENTITY CASCADE;');
+      const response = await request(app).get('/users');
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveLength(0);
+    });
+
+    it('should handle 500 errors when database error occurs', async () => {
+      const query = pool.query;
+      pool.query = jest.fn().mockRejectedValue(new Error('simulating an error'));
+      const response = await request(app).get('/users');
+      expect(response.status).toBe(500);
+      pool.query = query;
+    });
+  });
+});

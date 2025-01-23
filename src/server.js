@@ -7,7 +7,8 @@ const { Pool } = pg;
 export const pool = new Pool({
   user: process.env.POSTGRESQL_USER,
   host: process.env.POSTGRESQL_HOST,
-  database: process.env.POSTGRESQL_DB,
+  database:
+    process.env.NODE_ENV === 'test' ? process.env.POSTGRESQL_TEST_DB : process.env.POSTGRESQL_DB,
   password: process.env.POSTGRESQL_PW,
   port: process.env.POSTGRESQL_PORT,
 });

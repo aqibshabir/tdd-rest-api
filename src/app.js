@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import { pool } from './server.js';
 import isInvalidJSON from './utils/isInvalidJSON.js';
 
 export const app = express();
@@ -26,6 +27,15 @@ app.post('/', (req, res) => {
 // test route for 500 status errors
 app.get('/error', (req, res) => {
   throw new Error('this is an error');
+});
+
+app.get('/users', async (req, res, next) => {
+  try {
+    const result = await pool.query('SELECT * from users ORDER BY id ASC');
+    res.status(200).json(result.rows);
+  } catch (error) {
+    next(error);
+  }
 });
 
 // 404 not found
