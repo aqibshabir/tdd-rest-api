@@ -31,8 +31,8 @@ app.get('/error', (req, res) => {
 
 app.get('/users', async (req, res, next) => {
   try {
-    const result = await pool.query('SELECT * from users ORDER BY id ASC');
-    res.status(200).json(result.rows);
+    const { rows } = await pool.query('SELECT * from users ORDER BY id ASC');
+    res.status(200).json(rows);
   } catch (error) {
     next(error);
   }
@@ -40,9 +40,17 @@ app.get('/users', async (req, res, next) => {
 
 app.get('/users/:id', async (req, res, next) => {
   try {
-    const id = req.params.id;
-    const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
-    res.status(200).json(result.rows);
+    const { id } = req.params;
+    // validate ID (has to be positive integer)
+    if (isNaN(Number(id)) || Number(id) <= 0 || !Number.isInteger(Number(id))) {
+      return res.status(400).send('Provided Invalid ID');
+    }
+    const { rows } = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+    // checks if user found
+    if (rows.length === 0) {
+      return res.status(404).send('User Not Found');
+    }
+    res.status(200).json(rows[0]);
   } catch (error) {
     next(error);
   }

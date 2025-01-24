@@ -133,7 +133,19 @@ describe('Database tests', () => {
     it('should only return one user from the database', async () => {
       const response = await request(app).get('/users/1');
       expect(response.status).toBe(200);
-      expect(response.body).toHaveLength(1);
+      expect(response.body).toEqual({ id: 1, name: 'Aqib Shabir', email: 'aqib@email.com' });
+    });
+
+    it('should return 404 error when user is not found', async () => {
+      const response = await request(app).get('/users/99');
+      expect(response.status).toBe(404);
+      expect(response.text).toContain('User Not Found');
+    });
+
+    it('should return 400 when invalid id given', async () => {
+      const response = await request(app).get('/users/invalid-id');
+      expect(response.status).toBe(400);
+      expect(response.text).toContain('Provided Invalid ID');
     });
 
     it('should handle 500 errors when database errors occurs', async () => {
