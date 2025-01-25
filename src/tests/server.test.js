@@ -177,7 +177,30 @@ describe('Database tests', () => {
       const payload = { name: 123, email: 'hello@email.com' };
       const response = await request(app).post('/users').send(payload);
       expect(response.status).toBe(400);
-      expect(response.text).toContain('Name must be a string');
+      expect(response.text).toContain('Name Must Be a String');
+    });
+
+    it('should return 400 error when email is invalid', async () => {
+      const payload = { name: 'Henry', email: 'invalid-email-format' };
+      const response = await request(app).post('/users').send(payload);
+      expect(response.status).toBe(400);
+      expect(response.text).toBe('Not a Valid Email');
+    });
+
+    it('should return 400 error when inputting duplicate email', async () => {
+      const payload = { name: 'Another Aqib', email: 'aqib@email.com' };
+      const response = await request(app).post('/users').send(payload);
+      expect(response.status).toBe(400);
+      expect(response.text).toBe('Email Already Exists');
+    });
+
+    it('should return 500 error when database error occurs', async () => {
+      const query = pool.query;
+      pool.query = jest.fn().mockRejectedValue(new Error('simulating an error'));
+      const payload = { name: 'Jake Smith', email: 'jake@email.com' };
+      const response = await request(app).post('/users').send(payload);
+      expect(response.status).toBe(500);
+      pool.query = query;
     });
   });
 });

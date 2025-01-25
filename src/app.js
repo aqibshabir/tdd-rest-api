@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { pool } from './server.js';
 import isInvalidJSON from './utils/isInvalidJSON.js';
+import validateUserInput from './utils/validateUserInput.js';
 
 export const app = express();
 
@@ -59,18 +60,24 @@ app.get('/users/:id', async (req, res, next) => {
 app.post('/users', async (req, res, next) => {
   try {
     const { name, email } = req.body;
-    if (!name || !email) {
-      res.status(400).send('Missing Field(s)');
+    const errorMessage = validateUserInput(name, email);
+    if (errorMessage) {
+      return res.status(400).send(errorMessage);
     }
-    if (typeof name !== 'string') {
-      res.status(400).send('Name must be a string');
+    const { rows: userExists } = await pool.query('SELECT email FROM users WHERE email = $1', [
+      email,
+    ]);
+    if (userExists.length > 0) {
+      return res.status(400).send('Email Already Exists');
     }
     const { rows } = await pool.query(
       'INSERT INTO users (name, email) VALUES ($1, $2) RETURNING *',
       [name, email]
     );
     res.status(201).json(rows[0]);
-  } catch (error) {}
+  } catch (error) {
+    next(error);
+  }
 });
 
 // 404 not found
