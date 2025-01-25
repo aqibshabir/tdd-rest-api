@@ -156,4 +156,28 @@ describe('Database tests', () => {
       pool.query = query;
     });
   });
+
+  describe('POST /users route (create a new user)', () => {
+    it('should create a new user', async () => {
+      const payload = { name: 'Jake Smith', email: 'jake@email.com' };
+      const response = await request(app).post('/users').send(payload);
+      expect(response.status).toBe(201);
+      expect(response.body).toMatchObject(payload);
+      expect(response.body.id).toBeDefined();
+    });
+
+    it('should return 400 error when missing field(s)', async () => {
+      const payload = { name: '', email: '' };
+      const response = await request(app).post('/users').send(payload);
+      expect(response.status).toBe(400);
+      expect(response.text).toContain('Missing Field(s)');
+    });
+
+    it('should return 400 error when name is not a string', async () => {
+      const payload = { name: 123, email: 'hello@email.com' };
+      const response = await request(app).post('/users').send(payload);
+      expect(response.status).toBe(400);
+      expect(response.text).toContain('Name must be a string');
+    });
+  });
 });

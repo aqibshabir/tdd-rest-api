@@ -56,6 +56,23 @@ app.get('/users/:id', async (req, res, next) => {
   }
 });
 
+app.post('/users', async (req, res, next) => {
+  try {
+    const { name, email } = req.body;
+    if (!name || !email) {
+      res.status(400).send('Missing Field(s)');
+    }
+    if (typeof name !== 'string') {
+      res.status(400).send('Name must be a string');
+    }
+    const { rows } = await pool.query(
+      'INSERT INTO users (name, email) VALUES ($1, $2) RETURNING *',
+      [name, email]
+    );
+    res.status(201).json(rows[0]);
+  } catch (error) {}
+});
+
 // 404 not found
 app.use((req, res) => {
   res.status(404).send('Not Found');
