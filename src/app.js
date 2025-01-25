@@ -92,6 +92,7 @@ app.put('/users/:id', async (req, res, next) => {
     if (userID.length === 0) {
       return res.status(404).send('User Not Found');
     }
+
     const { rows } = await pool.query(
       'UPDATE users SET name = $1, email = $2 WHERE id = $3 RETURNING *',
       [name, email, id]
