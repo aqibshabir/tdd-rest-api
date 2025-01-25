@@ -184,7 +184,7 @@ describe('Database tests', () => {
       const payload = { name: 'Henry', email: 'invalid-email-format' };
       const response = await request(app).post('/users').send(payload);
       expect(response.status).toBe(400);
-      expect(response.text).toBe('Not a Valid Email');
+      expect(response.text).toBe('Invalid Email Address');
     });
 
     it('should return 400 error when inputting duplicate email', async () => {
@@ -199,6 +199,62 @@ describe('Database tests', () => {
       pool.query = jest.fn().mockRejectedValue(new Error('simulating an error'));
       const payload = { name: 'Jake Smith', email: 'jake@email.com' };
       const response = await request(app).post('/users').send(payload);
+      expect(response.status).toBe(500);
+      pool.query = query;
+    });
+  });
+
+  describe('PUT /users/:id (update an existing user)', () => {
+    it('should update single user', async () => {
+      const payload = { name: 'New Person', email: 'edited@email.com' };
+      const response = await request(app).put('/users/1').send(payload);
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        id: 1,
+        name: 'New Person',
+        email: 'edited@email.com',
+      });
+    });
+
+    it('should return 400 error when missing field(s)', async () => {
+      const payload = { name: '', email: '' };
+      const response = await request(app).put('/users/1').send(payload);
+      expect(response.status).toBe(400);
+      expect(response.text).toBe('Missing Field(s)');
+    });
+
+    it('should return 400 error when name is not a string', async () => {
+      const payload = { name: 123, email: 'edited@email.com' };
+      const response = await request(app).put('/users/1').send(payload);
+      expect(response.status).toBe(400);
+      expect(response.text).toBe('Name Must Be a String');
+    });
+
+    it('should return 400 error when email is invalid', async () => {
+      const payload = { name: 'George', email: 'invalid-email' };
+      const response = await request(app).put('/users/1').send(payload);
+      expect(response.status).toBe(400);
+      expect(response.text).toBe('Invalid Email Address');
+    });
+
+    it('should return 400 error when inputting duplicate email', async () => {
+      const payload = { name: 'edited', email: 'georgie@email.com' };
+      const response = await request(app).put('/users/1').send(payload);
+      expect(response.status).toBe(400);
+      expect(response.text).toContain('Email Already Exists');
+    });
+
+    it('should return 404 error when user not found', async () => {
+      const payload = { name: 'New Person', email: 'edited@email.com' };
+      const response = await request(app).put('/users/99').send(payload);
+      expect(response.status).toBe(404);
+    });
+
+    it('should return 500 error when database errors occurs', async () => {
+      const query = pool.query;
+      pool.query = jest.fn().mockRejectedValue(new Error('simulated error'));
+      const payload = { name: 'edited', email: 'edited@email.com' };
+      const response = await request(app).put('/users/1').send(payload);
       expect(response.status).toBe(500);
       pool.query = query;
     });

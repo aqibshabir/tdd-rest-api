@@ -9,13 +9,6 @@ export const app = express();
 // middleware
 app.use(cors({ origin: 'http://localhost:3000' }));
 app.use(express.json());
-app.use((err, req, res, next) => {
-  if (isInvalidJSON(err)) {
-    res.status(400).send('Invalid JSON');
-  }
-  next(err);
-});
-
 // routes
 app.get('/', (req, res) => {
   res.json({ info: 'Created using Node.js, Express, PostgreSQL, Jest and Supertest' });
@@ -78,6 +71,43 @@ app.post('/users', async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+});
+
+app.put('/users/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { name, email } = req.body;
+    const errorMessage = validateUserInput(name, email);
+    if (errorMessage) {
+      return res.status(400).send(errorMessage);
+    }
+    const { rows: userExists } = await pool.query('SELECT email FROM users WHERE email = $1', [
+      email,
+    ]);
+    if (userExists.length > 0) {
+      return res.status(400).send('Email Already Exists');
+    }
+
+    const { rows: userID } = await pool.query('SELECT id from users WHERE id = $1', [id]);
+    if (userID.length === 0) {
+      return res.status(404).send('User Not Found');
+    }
+    const { rows } = await pool.query(
+      'UPDATE users SET name = $1, email = $2 WHERE id = $3 RETURNING *',
+      [name, email, id]
+    );
+    res.status(200).json(rows[0]);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// 400 Invalid JSON
+app.use((err, req, res, next) => {
+  if (isInvalidJSON(err)) {
+    return res.status(400).send('Invalid JSON');
+  }
+  next(err);
 });
 
 // 404 not found

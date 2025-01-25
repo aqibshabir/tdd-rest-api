@@ -8,7 +8,7 @@ export default function validateUserInput(name, email) {
     return 'Name Must Be a String';
   }
   if (!isValidEmail) {
-    return 'Not a Valid Email';
+    return 'Invalid Email Address';
   }
   return null;
 }
