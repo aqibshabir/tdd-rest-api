@@ -217,7 +217,8 @@ describe('Database tests', () => {
     });
 
     it('should return 400 error when invalid id sent', async () => {
-      const response = await request(app).delete('/users/invalid-id');
+      const payload = { name: 'New Person', email: 'edited@email.com' };
+      const response = await request(app).put('/users/invalid-id').send(payload);
       expect(response.status).toBe(400);
       expect(response.text).toContain('Provide Valid ID');
     });
