@@ -37,7 +37,7 @@ app.get('/users/:id', async (req, res, next) => {
     const { id } = req.params;
     // validate ID (has to be positive integer)
     if (isNaN(Number(id)) || Number(id) <= 0 || !Number.isInteger(Number(id))) {
-      return res.status(400).send('Provided Invalid ID');
+      return res.status(400).send('Provide Valid ID');
     }
     const { rows } = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
     // checks if user found
@@ -76,6 +76,10 @@ app.post('/users', async (req, res, next) => {
 app.put('/users/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
+    // validate ID
+    if (isNaN(Number(id)) || Number(id) <= 0 || !Number.isInteger(Number(id))) {
+      return res.status(400).send('Provide Valid ID');
+    }
     const { name, email } = req.body;
     const errorMessage = validateUserInput(name, email);
     if (errorMessage) {
@@ -88,7 +92,7 @@ app.put('/users/:id', async (req, res, next) => {
       return res.status(400).send('Email Already Exists');
     }
 
-    const { rows: userID } = await pool.query('SELECT id from users WHERE id = $1', [id]);
+    const { rows: userID } = await pool.query('SELECT id FROM users WHERE id = $1', [id]);
     if (userID.length === 0) {
       return res.status(404).send('User Not Found');
     }
@@ -97,6 +101,26 @@ app.put('/users/:id', async (req, res, next) => {
       'UPDATE users SET name = $1, email = $2 WHERE id = $3 RETURNING *',
       [name, email, id]
     );
+    res.status(200).json(rows[0]);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete('/users/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    // validate ID
+    if (isNaN(Number(id)) || Number(id) <= 0 || !Number.isInteger(Number(id))) {
+      return res.status(400).send('Provide Valid ID');
+    }
+    const { rows: userID } = await pool.query('SELECT id FROM users WHERE id = $1', [id]);
+    if (userID.length === 0) {
+      return res.status(404).send('User Not Found');
+    }
+    const { rows } = await pool.query('DELETE FROM users WHERE id = $1 RETURNING *', [id]);
+    // update ID
+    await pool.query('UPDATE users SET id = id - 1 WHERE id > $1', [id]);
     res.status(200).json(rows[0]);
   } catch (error) {
     next(error);

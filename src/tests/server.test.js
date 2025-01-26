@@ -145,7 +145,7 @@ describe('Database tests', () => {
     it('should return 400 when invalid id given', async () => {
       const response = await request(app).get('/users/invalid-id');
       expect(response.status).toBe(400);
-      expect(response.text).toContain('Provided Invalid ID');
+      expect(response.text).toContain('Provide Valid ID');
     });
 
     it('should handle 500 errors when database errors occurs', async () => {
@@ -216,6 +216,12 @@ describe('Database tests', () => {
       });
     });
 
+    it('should return 400 error when invalid id sent', async () => {
+      const response = await request(app).delete('/users/invalid-id');
+      expect(response.status).toBe(400);
+      expect(response.text).toContain('Provide Valid ID');
+    });
+
     it('should return 400 error when missing field(s)', async () => {
       const payload = { name: '', email: '' };
       const response = await request(app).put('/users/1').send(payload);
@@ -248,6 +254,7 @@ describe('Database tests', () => {
       const payload = { name: 'New Person', email: 'edited@email.com' };
       const response = await request(app).put('/users/99').send(payload);
       expect(response.status).toBe(404);
+      expect(response.text).toContain('User Not Found');
     });
 
     it('should return 500 error when database errors occurs', async () => {
@@ -255,6 +262,47 @@ describe('Database tests', () => {
       pool.query = jest.fn().mockRejectedValue(new Error('simulated error'));
       const payload = { name: 'edited', email: 'edited@email.com' };
       const response = await request(app).put('/users/1').send(payload);
+      expect(response.status).toBe(500);
+      pool.query = query;
+    });
+  });
+
+  describe('DELETE /users/:id (delete an existing user)', () => {
+    it('should delete an existing user', async () => {
+      const response = await request(app).delete('/users/1');
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ id: 1, name: 'Aqib Shabir', email: 'aqib@email.com' });
+    });
+
+    it('should decrement id of remaining users after deletion', async () => {
+      await request(app).delete('/users/1');
+      const response = await request(app).get('/users/1');
+      expect(response.body).toEqual({ id: 1, name: 'Georgie Roberts', email: 'georgie@email.com' });
+    });
+
+    it('should return 400 error when invalid id sent', async () => {
+      const response = await request(app).delete('/users/invalid-id');
+      expect(response.status).toBe(400);
+      expect(response.text).toContain('Provide Valid ID');
+    });
+
+    it('should return 404 when user not found', async () => {
+      const response = await request(app).delete('/users/99');
+      expect(response.status).toBe(404);
+      expect(response.text).toBe('User Not Found');
+    });
+
+    it('should return 404 when deleting in empty database', async () => {
+      await pool.query('TRUNCATE TABLE users RESTART IDENTITY CASCADE;');
+      const response = await request(app).delete('/users/1');
+      expect(response.status).toBe(404);
+      expect(response.text).toBe('User Not Found');
+    });
+
+    it('should return 500 error for database error', async () => {
+      const query = pool.query;
+      pool.query = jest.fn().mockRejectedValue(new Error('simulating error'));
+      const response = await request(app).delete('/users/1');
       expect(response.status).toBe(500);
       pool.query = query;
     });
