@@ -2,7 +2,7 @@ import { app } from './app.js';
 import pg from 'pg';
 import 'dotenv/config';
 
-const { Pool } = pg;
+export const { Pool } = pg;
 
 export const pool = new Pool({
   user: process.env.POSTGRESQL_USER,
